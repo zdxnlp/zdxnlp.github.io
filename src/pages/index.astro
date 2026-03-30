@@ -1,165 +1,75 @@
 ---
-import BaseHead from '../components/BaseHead.astro';
-import Footer from '../components/Footer.astro';
-import FormattedDate from '../components/FormattedDate.astro';
-import Header from '../components/Header.astro';
-import { getCollection } from 'astro:content';
-import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
+import HomeSider from '@components/layout/HomeSider.astro';
+import PostList from '@components/post/PostList.astro';
+import Cover from '@components/ui/cover/Cover.astro';
+import { CONTENT_PADDING, PAGINATION } from '@constants/layout';
+import { seoConfig, siteConfig } from '@constants/site-config';
+import Layout from '@layouts/Layout.astro';
+import TwoColumnLayout from '@layouts/TwoColumnLayout.astro';
+import { getHomePagePosts } from '@lib/content';
+import { toPostCardDataList } from '@lib/content/transforms';
+import type { Page } from 'astro';
+import type { BlogPost } from 'types/blog';
+import CategoryCards from '@/components/post/CategoryCards.astro';
+import Divider from '@/components/ui/divider';
+import { getLocaleFromUrl, localizedPath, t } from '@/i18n';
 
-const posts = (await getCollection('blog'))
-	.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
-	.slice(0, 3);
-const baseUrl = import.meta.env.BASE_URL;
+const locale = getLocaleFromUrl(Astro.url.pathname);
+
+// 使用优化的单次查询获取所有首页数据
+const { highlightedPosts, stickyPosts: normalStickyPosts, regularPosts } = await getHomePagePosts(locale);
+
+// 将高亮系列文章放在置顶列表开头（转换为卡片数据）
+const stickyPosts = toPostCardDataList([...highlightedPosts, ...normalStickyPosts], locale);
+
+// 首页显示前N篇普通文章（不含系列文章）
+const { pageSize } = PAGINATION;
+const regularPostsSlice = regularPosts.slice(0, pageSize);
+const posts = toPostCardDataList(regularPostsSlice, locale);
+const totalRegularPosts = regularPosts.length;
+
+const homeUrl = localizedPath('/', locale);
+const postsBaseUrl = localizedPath('/posts', locale);
+
+const page: Page<BlogPost> = {
+  data: regularPostsSlice,
+  start: 0,
+  end: Math.min(pageSize - 1, regularPostsSlice.length - 1),
+  size: pageSize,
+  total: totalRegularPosts,
+  currentPage: 1,
+  lastPage: Math.ceil(totalRegularPosts / pageSize),
+  url: {
+    current: homeUrl,
+    prev: undefined,
+    next: totalRegularPosts > pageSize ? `${postsBaseUrl}/2` : undefined,
+    first: homeUrl,
+    last: `${postsBaseUrl}/${Math.ceil(totalRegularPosts / pageSize)}`,
+  },
+};
 ---
 
-<!doctype html>
-<html lang="zh-CN">
-	<head>
-		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
-		<style>
-			.hero {
-				padding: 3rem 0 2rem;
-			}
-			.eyebrow {
-				margin-bottom: 0.75rem;
-				color: rgb(var(--accent));
-				font-size: 0.85rem;
-				font-weight: 700;
-				letter-spacing: 0.08em;
-			}
-			.hero h1 {
-				margin-bottom: 1rem;
-				font-size: clamp(2.8rem, 8vw, 4.6rem);
-				line-height: 0.95;
-			}
-			.lead {
-				max-width: 44rem;
-				font-size: 1.15rem;
-				color: rgb(var(--gray-dark));
-			}
-			.actions {
-				display: flex;
-				flex-wrap: wrap;
-				gap: 1rem;
-				margin-top: 1.5rem;
-			}
-			.actions a {
-				padding: 0.85rem 1.2rem;
-				border-radius: 999px;
-				text-decoration: none;
-				font-weight: 700;
-			}
-			.actions .primary {
-				background: rgb(var(--accent));
-				color: white;
-			}
-			.actions .secondary {
-				border: 1px solid rgba(var(--gray), 0.35);
-				color: rgb(var(--black));
-			}
-			section + section {
-				margin-top: 3rem;
-			}
-			.section-title {
-				margin-bottom: 1rem;
-			}
-			.post-grid,
-			.note-grid {
-				display: grid;
-				gap: 1rem;
-			}
-			.post-grid {
-				grid-template-columns: repeat(3, minmax(0, 1fr));
-			}
-			.note-grid {
-				grid-template-columns: repeat(2, minmax(0, 1fr));
-			}
-			.card {
-				padding: 1.2rem;
-				border: 1px solid rgba(var(--gray), 0.25);
-				border-radius: 20px;
-				background: rgba(var(--gray-light), 0.2);
-			}
-			.card h3 {
-				margin-bottom: 0.6rem;
-			}
-			.card p {
-				margin: 0;
-				color: rgb(var(--gray-dark));
-			}
-			.card a {
-				text-decoration: none;
-				color: inherit;
-			}
-			.meta {
-				margin-bottom: 0.75rem;
-				font-size: 0.95rem;
-				color: rgb(var(--gray));
-			}
-			@media (max-width: 900px) {
-				.post-grid,
-				.note-grid {
-					grid-template-columns: 1fr;
-				}
-			}
-		</style>
-	</head>
-	<body>
-		<Header />
-		<main>
-			<section class="hero">
-				<p class="eyebrow">ASTRO BLOG</p>
-				<h1>把想法、代码和生活片段都写下来。</h1>
-				<p class="lead">
-					这里是 DXZ 的个人博客。它适合用来记录开发笔记、项目复盘、学习摘要，也适合慢慢长成自己的线上作品集。
-				</p>
-				<div class="actions">
-					<a class="primary" href={`${baseUrl}blog/`}>查看所有文章</a>
-					<a class="secondary" href={`${baseUrl}about/`}>了解我</a>
-				</div>
-			</section>
-
-			<section>
-				<h2 class="section-title">最近更新</h2>
-				<div class="post-grid">
-					{
-						posts.map((post) => (
-							<article class="card">
-								<a href={`${baseUrl}blog/${post.id}/`}>
-									<p class="meta">
-										<FormattedDate date={post.data.pubDate} />
-									</p>
-									<h3>{post.data.title}</h3>
-									<p>{post.data.description}</p>
-								</a>
-							</article>
-						))
-					}
-				</div>
-			</section>
-
-			<section>
-				<h2 class="section-title">这个博客可以写什么</h2>
-				<div class="note-grid">
-					<div class="card">
-						<h3>开发记录</h3>
-						<p>整理 Astro、前端工程、自动化流程和部署经验，方便以后回看。</p>
-					</div>
-					<div class="card">
-						<h3>项目复盘</h3>
-						<p>把做过的项目写成过程笔记，不只展示结果，也保留踩坑和取舍。</p>
-					</div>
-					<div class="card">
-						<h3>阅读与思考</h3>
-						<p>随手记录书摘、文章摘要和阶段性的想法，让输入慢慢变成输出。</p>
-					</div>
-					<div class="card">
-						<h3>生活碎片</h3>
-						<p>博客不一定只写技术，旅行、摄影、日常观察也都可以成为内容。</p>
-					</div>
-				</div>
-			</section>
-		</main>
-		<Footer />
-	</body>
-</html>
+<Layout title={seoConfig.title}>
+  <TwoColumnLayout>
+    <Cover slot="cover" />
+    <HomeSider slot="sider" />
+    <div
+      class={`bg-gradient-start shadow-box tablet:shadow-none flex flex-col gap-4 overflow-hidden  ${CONTENT_PADDING.standard}`}
+    >
+      {stickyPosts.length > 0 && (
+        <>
+          <Divider>{t(locale, 'post.stickyPosts')}</Divider>
+          <PostList posts={stickyPosts} showPaginator={false} />
+        </>
+      )}
+      <Divider>{t(locale, 'post.postList')}</Divider>
+      <PostList posts={posts} page={page} showPaginator={true} baseUrl={postsBaseUrl} isHomePage={true} />
+      {!!siteConfig?.featuredCategories?.length && (
+        <>
+          <Divider className="mt-6">{t(locale, 'post.featuredCategories')}</Divider>
+          <CategoryCards />
+        </>
+      )}
+    </div>
+  </TwoColumnLayout>
+</Layout>

@@ -1,0 +1,126 @@
+site:
+  title: zdxnlp 的个人博客
+  alternate: zdxnlp
+  subtitle: 记录开发、想法与生活片段
+  name: zdxnlp
+  description: 一个使用 Astro 和 Koharu 主题搭建的个人博客。
+  avatar: /img/avatar.webp
+  showLogo: true
+  author: zdxnlp
+  url: https://zdxnlp.github.io
+  defaultOgImage: /img/avatar.webp
+  startYear: 2026
+  timezone: Asia/Shanghai
+  keywords:
+    - 博客
+    - Astro
+    - 前端
+    - 个人网站
+    - 记录
+
+i18n:
+  defaultLocale: zh
+  locales:
+    - code: zh
+      label: 中文
+    - code: en
+      label: English
+      enabled: false
+    - code: ja
+      label: 日本語
+      enabled: false
+
+categoryMap:
+  随笔: life
+  笔记: note
+  工具: tools
+
+featuredCategories:
+  - link: life
+    label: 随笔
+    image: /img/cover/2.webp
+    description: 生活记录、碎片感受和阶段性想法
+  - link: note
+    label: 笔记
+    image: /img/cover/4.webp
+    description: 开发笔记、建站记录和问题总结
+  - link: tools
+    label: 工具
+    image: /img/cover/11.webp
+    description: 工作流、效率工具和博客维护经验
+
+social:
+  github:
+    url: https://github.com/zdxnlp
+    icon: ri:github-fill
+    color: '#191717'
+  rss:
+    url: /rss.xml
+    icon: ri:rss-line
+    color: '#ff6600'
+
+content:
+  addBlankTarget: true
+  smoothScroll: true
+  addHeadingLevel: true
+  enhanceCodeBlock: true
+  enableCodeCopy: true
+  enableCodeFullscreen: true
+  enableLinkEmbed: false
+  enableTweetEmbed: false
+  enableOGPreview: false
+  previewCacheTime: 3600
+  lazyLoadEmbeds: true
+  postCardImagePosition: alternating
+  enableShokaContainers: true
+  enableShokaAttrs: true
+  enableShokaEffects: true
+  enableShokaSpoiler: true
+  enableShokaRuby: true
+  enableShokaHexoTags: true
+  enableMath: true
+  enableCodeMeta: true
+  enableQuiz: true
+  enableEncryptedBlock: true
+
+navigation:
+  - name: 首页
+    nameKey: nav.home
+    path: /
+    icon: ri:home-heart-fill
+  - name: 文章
+    nameKey: nav.posts
+    icon: ri:quill-pen-ai-fill
+    children:
+      - name: 分类
+        nameKey: nav.categories
+        path: /categories
+        icon: ri:grid-fill
+      - name: 标签
+        nameKey: nav.tags
+        path: /tags
+        icon: fa6-solid:tags
+      - name: 归档
+        nameKey: nav.archives
+        path: /archives
+        icon: ri:archive-2-fill
+  - name: 关于
+    nameKey: nav.about
+    path: /about
+    icon: fa6-regular:circle-user
+
+comment:
+  provider: none
+
+analytics:
+  umami:
+    enabled: false
+    id: ''
+    endpoint: ''
+
+bgm:
+  enabled: false
+  audio: []
+
+christmas:
+  enabled: false
